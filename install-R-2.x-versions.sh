@@ -1,5 +1,9 @@
 #!/bin/bash
 
+version=${1:-$versions}
+
+echo "Downloading, compiling, and listing objects for version $version"
+
 function download {
   TARFILE="$1.tar.gz"
   echo "==============="
@@ -39,7 +43,7 @@ function compile {
 
 function run_list_objects {
   echo "==============="
-  echo "Running list-objects.R:"
+  echo "Running list-objects.R for $1:"
   PATH=/usr/X11R6/bin:$PATH xvfb-run $1/bin/R CMD BATCH --slave --no-timings list-objects.R docker-data/stdout-$1 
   
   if [[ $? > 0 ]]
@@ -49,19 +53,25 @@ function run_list_objects {
   fi
 }
 
-while read VERSION; do
-  if [[ $VERSION == x* ]]; then continue; fi
-  download  $VERSION
-done <R-2.x-source-versions.txt
+if [ "$version" == "all" ]; then
+  while read VERSION; do
+    if [[ $VERSION == x* ]]; then continue; fi
+    download $VERSION
+  done <R-2.x-source-versions.txt
 
-wget --quiet "https://cran.r-project.org/src/base/R-3/R-3.0.0.tar.gz"
-tar -zxf R-3.0.0.tar.gz
+  wget --quiet "https://cran.r-project.org/src/base/R-3/R-3.0.0.tar.gz"
+  tar -zxf R-3.0.0.tar.gz
 
-while read VERSION; do
-  if [[ $VERSION == x* ]]; then continue; fi
-  compile  $VERSION
-  run_list_objects $VERSION
-done <R-2.x-source-versions.txt
+  while read VERSION; do
+    if [[ $VERSION == x* ]]; then continue; fi
+    compile $VERSION
+    run_list_objects $VERSION
+  done <R-2.x-source-versions.txt
 
-compile R-3.0.0
-run_list_objects R-3.0.0
+  compile R-3.0.0
+  run_list_objects R-3.0.0
+else
+  download $version
+  compile $version
+  run_list_objects $version
+fi

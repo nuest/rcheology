@@ -19,5 +19,7 @@ RUN chmod a+x install-R-2.x-versions.sh
 COPY list-objects.R .
 COPY R-2.x-source-versions.txt .
 
-CMD ["./install-R-2.x-versions.sh"]
+ARG versions
+ENV versions ${versions:-all}
 
+ENTRYPOINT ["./install-R-2.x-versions.sh" ]

@@ -86,3 +86,44 @@ ggplot(rch_dates, aes(date, group = package, fill= package), colour = NA) +
 ```
 
 <img src="man/figures/README-unnamed-chunk-3-1.png" width="100%" />
+
+Running analysis or building images for specific R versions
+-----------------------------------------------------------
+
+At runtime:
+
+```
+$ docker run -it rch_r2
+Downloading, compiling, and listing objects for version all
+===============
+Downloading R-2.5.0.tar.gz:
+===============
+Downloading R-2.5.1.tar.gz:
+[...]
+
+$ docker run -it rch_r2 R-2.5.0
+Downloading, compiling, and listing objects for version R-2.5.0
+[...]
+```
+
+At build time:
+
+```
+docker build -t rch_r2 --build-arg versions=R-2.5.1 -f Dockerfile-R2 .
+docker run --name rcheology_251 -it rch_r2
+Downloading, compiling, and listing objects for version R.2.5.1
+[...]
+```
+
+Using the compiled R in the image (need to get rid of the commit step, this is just for testing; compiled R should be the default R installation, and if it is just one version then run the install script at build time?):
+
+```
+docker build rcheology:2.5.1 --build-arg versions=R-2.5.1 -f Dockerfile-R2 .
+docker run -it --name rch_251 rcheology:2.5.1
+docker commit rch_251 rcheology:2.5.1_with_r
+docker run -it --entrypoint=R-2.5.1/bin/R rcheology:2.5.1_with_r
+
+R version 2.5.1 (2007-06-27)
+Copyright (C) 2007 The R Foundation for Statistical Computing
+[...]
+```
